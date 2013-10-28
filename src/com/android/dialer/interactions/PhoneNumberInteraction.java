@@ -187,7 +187,6 @@ public class PhoneNumberInteraction implements OnLoadCompleteListener<Cursor> {
         private static final String ARG_PHONE_LIST = "phoneList";
         private static final String ARG_INTERACTION_TYPE = "interactionType";
         private static final String ARG_CALL_ORIGIN = "callOrigin";
-        private static final String ARG_CAN_SAVE_PRIMARY = "canSavePrimary";
 
         private int mInteractionType;
         private ListAdapter mPhonesAdapter;
@@ -196,13 +195,12 @@ public class PhoneNumberInteraction implements OnLoadCompleteListener<Cursor> {
 
         public static void show(FragmentManager fragmentManager,
                 ArrayList<PhoneItem> phoneList, int interactionType,
-                String callOrigin, boolean canSavePrimary) {
+                String callOrigin) {
             PhoneDisambiguationDialogFragment fragment = new PhoneDisambiguationDialogFragment();
             Bundle bundle = new Bundle();
             bundle.putParcelableArrayList(ARG_PHONE_LIST, phoneList);
             bundle.putSerializable(ARG_INTERACTION_TYPE, interactionType);
             bundle.putString(ARG_CALL_ORIGIN, callOrigin);
-            bundle.putBoolean(ARG_CAN_SAVE_PRIMARY, canSavePrimary);
             fragment.setArguments(bundle);
             fragment.show(fragmentManager, TAG);
         }
@@ -215,13 +213,8 @@ public class PhoneNumberInteraction implements OnLoadCompleteListener<Cursor> {
             mCallOrigin = getArguments().getString(ARG_CALL_ORIGIN);
 
             mPhonesAdapter = new PhoneItemAdapter(activity, mPhoneList, mInteractionType);
-
-            View setPrimaryView = null;
-            if (getArguments().getBoolean(ARG_CAN_SAVE_PRIMARY)) {
-                final LayoutInflater inflater = activity.getLayoutInflater();
-                setPrimaryView = inflater.inflate(R.layout.set_primary_checkbox, null);
-            }
-
+            final LayoutInflater inflater = activity.getLayoutInflater();
+            final View setPrimaryView = inflater.inflate(R.layout.set_primary_checkbox, null);
             return new AlertDialog.Builder(activity)
                     .setAdapter(mPhonesAdapter, this)
                     .setTitle(mInteractionType == ContactDisplayUtils.INTERACTION_SMS
@@ -238,7 +231,7 @@ public class PhoneNumberInteraction implements OnLoadCompleteListener<Cursor> {
             if (mPhoneList.size() > which && which >= 0) {
                 final PhoneItem phoneItem = mPhoneList.get(which);
                 final CheckBox checkBox = (CheckBox)alertDialog.findViewById(R.id.setPrimary);
-                if (checkBox != null && checkBox.isChecked()) {
+                if (checkBox.isChecked()) {
                     // Request to mark the data as primary in the background.
                     final Intent serviceIntent = ContactUpdateService.createSetSuperPrimaryIntent(
                             activity, phoneItem.id);
@@ -507,6 +500,6 @@ public class PhoneNumberInteraction implements OnLoadCompleteListener<Cursor> {
     @VisibleForTesting
     /* package */ void showDisambiguationDialog(ArrayList<PhoneItem> phoneList) {
         PhoneDisambiguationDialogFragment.show(((Activity)mContext).getFragmentManager(),
-                phoneList, mInteractionType, mCallOrigin, mUseDefault);
+                phoneList, mInteractionType, mCallOrigin);
     }
 }
